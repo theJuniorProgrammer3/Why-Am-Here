@@ -22,6 +22,18 @@ vector<vector<string>> world = {
 "#              =   #",
 "#                  #",
 "################ ###"
+	},
+	{
+"################ ###",
+"#                  #",
+"# =                #",
+"#                  #",
+"#       =          #",
+"#                  #",
+"#                  #",
+"#      =           #",
+"#                  #",
+"################ ###"
 	}
 };
 
@@ -29,6 +41,17 @@ vector<unsigned int> pPos = {0, 3, 9};
 
 void changePos(int ud, int rl) {
 	world[pPos[0]][pPos[1]][pPos[2]] = ' ';
+	if(pPos[1] + ud == world[pPos[0]].size()) {
+		if(pPos[0] + 1 < world.size()) {
+		pPos[0]++;
+		pPos[1] = 0;
+		}
+	} else if((int)pPos[1] + ud == -1) {
+		if(pPos[0] > 0) {
+		pPos[0]--;
+		pPos[1] = world[pPos[0]].size() - 1;
+		}
+	}
 	if(world[pPos[0]][pPos[1] + ud][pPos[2]] == ' ') pPos[1] += ud;
 	if(world[pPos[0]][pPos[1]][pPos[2] + rl] == ' ') pPos[2] += rl;
 	world[pPos[0]][pPos[1]][pPos[2]] = '&';
