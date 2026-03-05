@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <ncurses.h>
 #include <string>
 #include <vector>
@@ -25,7 +26,7 @@ vector<vector<string>> world = {
 "#         B        #",
 "#   =              #",
 "#              =   #",
-"#                  #",
+"#      E           #",
 "################ ###"
 	},
 	{
@@ -35,7 +36,7 @@ vector<vector<string>> world = {
 "#           B      #",
 "#       =          #",
 "#                  #",
-"#                  #",
+"#              E   #",
 "#      =           #",
 "#                  #",
 "################ ###"
@@ -43,6 +44,10 @@ vector<vector<string>> world = {
 };
 
 vector<uint8_t> doors = {16, 16};
+vector<vector<pair<unsigned int, unsigned int>>> enemies = { // Y, X
+	{{8, 7}},
+	{{6, 15}}
+};
 void addWorld() {
 	vector<string> w = {
 "####################",
@@ -62,6 +67,12 @@ void addWorld() {
 	}
 		w[disY(gen)][disX(gen)] = 'B';
 		w[disY(gen)][disX(gen)] = 'B';
+		pair<unsigned int, unsigned int> en = {disY(gen), disX(gen)};
+		enemies.push_back({en});
+		w[en.first][en.second] = 'E';
+		en = {disY(gen), disX(gen)};
+		enemies.back().push_back(en);
+		w[en.first][en.second] = 'E';
 	doors.push_back(disX(gen));
 	w[9][doors.back()] = ' ';
 	world.push_back(w);	
@@ -175,6 +186,50 @@ void push(char type) {
 
 	}
 }
+#ifdef NaturalEnemyMovement
+uint8_t moveToWhat(pair<int, int> enemyPos) { // Y, X
+	int dx = pPos[2] - enemyPos.second; 
+	int dy = pPos[1] - enemyPos.first; 
+	float ang = atan2(dy, dx);
+	ang *= 57.3; // 180 / PI
+		     // temp, later will use radian for speed
+	if(ang < 0) ang += 360;
+	// to make it fair with player...
+	// 0 = kanan
+	// 1 = kanan bawah
+	// 2 = bawah
+	// 3 = kiri bawah
+	// 4 = kiri
+	// 5 = kiri atas
+	// 6 = atas
+	// 7 = kanan atas
+	return static_cast<uint8_t>(round(ang / 45));
+}
+#else
+// AI gen:
+uint8_t moveToWhat(pair<int, int> enemyPos) {
+    int dx = pPos[2] - enemyPos.second;
+    int dy = pPos[1] - enemyPos.first;
+
+    if (dx == 0 && dy == 0) return 0; // Diam atau default kanan
+
+    if (dx > 0) {         // Sisi KANAN (Sudut -45 sampai 45)
+        if (dy > 0) return 1;      // Kanan Bawah
+        if (dy < 0) return 7;      // Kanan Atas
+        return 0;                  // Tepat Kanan
+    }
+    else if (dx < 0) {    // Sisi KIRI (Sudut 135 sampai 225)
+        if (dy > 0) return 3;      // Kiri Bawah
+        if (dy < 0) return 5;      // Kiri Atas
+        return 4;                  // Tepat Kiri
+    }
+    else {                // Sisi VERTIKAL MURNI (dx == 0)
+        return (dy > 0) ? 2 : 6;   // 2 = Bawah, 6 = Atas
+    }
+}
+#endif
+
+unsigned int enemiesClock = 0;
 
 
 
@@ -185,7 +240,49 @@ int main() {
 	noecho();
 	int inp;
 	while(true) {
-		refresh();
+		clear();
+		// Enemy Movement, basic first...
+		vector<pair<unsigned int, unsigned int>> theEnemies = enemies[pPos[0]];
+		if(enemiesClock == 60) { // After 60 frame
+		enemiesClock = 0;
+		for(int a = 0; a < theEnemies.size(); ++a) {
+			world[pPos[0]][theEnemies[a].first][theEnemies[a].second] = ' ';
+			switch(moveToWhat(theEnemies[a])) {
+				case 0:
+					theEnemies[a].second++;
+					break;
+				case 1:
+					theEnemies[a].second++;
+					theEnemies[a].first++;
+					break;
+				case 2:
+					theEnemies[a].first++;
+					break;
+				case 3:
+					theEnemies[a].first++;
+					theEnemies[a].second--;
+					break;
+				case 4:
+					theEnemies[a].second--;
+					break;
+				case 5:
+					theEnemies[a].second--;
+					theEnemies[a].first--;
+					break;
+				case 6:
+					theEnemies[a].first--;
+					break;
+				default: // 7 or 8
+					theEnemies[a].first--;
+					theEnemies[a].second++;
+					break;
+
+			}
+			enemies[pPos[0]][a] = theEnemies[a];
+			world[pPos[0]][theEnemies[a].first][theEnemies[a].second] = 'E';
+		}
+		}
+		enemiesClock++;
 		for(auto b : world[pPos[0]]) {
 			for(auto c : b) {
 				//printw("[%c]", (c == "p" ? "&" : " ));
@@ -202,7 +299,7 @@ int main() {
 		if(inp == 'e' || inp == 's' || inp == 'd' || inp == 'f') inter(inp);
 		if(inp == 'u' || inp == 'h' || inp == 'j' || inp == 'k') push(inp);
 		napms(17);
-		clear();
+		refresh();
 	}
 	endwin();
 }
