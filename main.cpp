@@ -239,15 +239,17 @@ int main() {
 	nodelay(stdscr, TRUE);
 	noecho();
 	int inp;
+	map<array<unsigned int, 2>, uint8_t> enemiesMemory; // [enemy's floor, 'a' below] [type]
 	while(true) {
 		clear();
 		// Enemy Movement, basic first...
 		vector<pair<unsigned int, unsigned int>> theEnemies = enemies[pPos[0]];
-		if(enemiesClock == 60) { // After 60 frame
+		if(enemiesClock == 30) { // After 30 frame
 		enemiesClock = 0;
-		for(int a = 0; a < theEnemies.size(); ++a) {
+		for(unsigned int a = 0; a < theEnemies.size(); ++a) {
+			auto mtwRes = moveToWhat(theEnemies[a]);
 			world[pPos[0]][theEnemies[a].first][theEnemies[a].second] = ' ';
-			switch(moveToWhat(theEnemies[a])) {
+			switch(mtwRes) {
 				case 0:
 					theEnemies[a].second++;
 					break;
@@ -278,7 +280,53 @@ int main() {
 					break;
 
 			}
+			if(world[pPos[0]][theEnemies[a].first][theEnemies[a].second] == ' ') {
+			enemiesMemory.erase({pPos[0], a});
 			enemies[pPos[0]][a] = theEnemies[a];
+			world[pPos[0]][theEnemies[a].first][theEnemies[a].second] = 'E';
+			} else if(enemiesMemory.find({pPos[0], a}) != enemiesMemory.end()) {
+			theEnemies = enemies[pPos[0]];
+			switch (enemiesMemory[{pPos[0], a}]) {
+				case 0: case 4:
+					theEnemies[a].first++;
+					break;
+				case 2: case 6:
+					theEnemies[a].second++;
+					break;
+				case 1:
+					if(world[pPos[0]][theEnemies[a].first + 1][theEnemies[a].second] == ' ') {
+						theEnemies[a].first++;
+					} else {
+						theEnemies[a].second++;
+					}
+					break;
+				case 3:
+					if(world[pPos[0]][theEnemies[a].first + 1][theEnemies[a].second] == ' ') {
+						theEnemies[a].first++;
+					} else {
+						theEnemies[a].second--;
+					}
+					break;
+				case 5:
+					if(world[pPos[0]][theEnemies[a].first - 1][theEnemies[a].second] == ' ') {
+						theEnemies[a].first--;
+					} else {
+						theEnemies[a].second--;
+					}
+					break;
+				default:
+					if(world[pPos[0]][theEnemies[a].first - 1][theEnemies[a].second] == ' ') {
+						theEnemies[a].first--;
+					} else {
+						theEnemies[a].second++;
+					}
+					break;
+			}
+			enemies[pPos[0]][a] = theEnemies[a];
+			} else {
+				theEnemies = enemies[pPos[0]];
+				enemiesMemory[{pPos[0], a}] = mtwRes;
+			}
 			world[pPos[0]][theEnemies[a].first][theEnemies[a].second] = 'E';
 		}
 		}
