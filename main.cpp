@@ -142,7 +142,7 @@ void openShelf(vector<unsigned int> pos) {
 	nodelay(stdscr, TRUE);
 }
 
-map<char, pair<int, int>> direction = { // xhar, Y, X
+map<char, pair<int, int>> direction = { // char, Y, X
 					// I will optimize later
  {'e', {-1, 0}},
  {'u', {-1, 0}},
@@ -195,18 +195,18 @@ uint8_t moveToWhat(pair<int, int> enemyPos) { // Y, X
 		     // temp, later will use radian for speed
 	if(ang < 0) ang += 360;
 	// to make it fair with player...
-	// 0 = kanan
-	// 1 = kanan bawah
-	// 2 = bawah
-	// 3 = kiri bawah
-	// 4 = kiri
-	// 5 = kiri atas
-	// 6 = atas
-	// 7 = kanan atas
+	// 0 = right
+	// 1 = bottom right
+	// 2 = bottom
+	// 3 = bottom left
+	// 4 = left
+	// 5 = upper left
+	// 6 = up
+	// 7 = upper right
 	return static_cast<uint8_t>(round(ang / 45));
 }
 #else
-// AI gen:
+// AI gen / VIBECODED:
 uint8_t moveToWhat(pair<int, int> enemyPos) {
     int dx = pPos[2] - enemyPos.second;
     int dy = pPos[1] - enemyPos.first;
@@ -228,6 +228,24 @@ uint8_t moveToWhat(pair<int, int> enemyPos) {
     }
 }
 #endif
+
+
+void gameOver() {
+	nodelay(stdscr, FALSE);
+	clear();
+	printw("#####################################\n");
+	printw(R"(  ____                         ___
+ / ___| __ _ _ __ ___   ___   / _ \__   _____ _ __
+| |  _ / _` | '_ ` _ \ / _ \ | | | \ \ / / _ \ '__|
+| |_| | (_| | | | | | |  __/ | |_| |\ V /  __/ |
+ \____|\__,_|_| |_| |_|\___|  \___/  \_/ \___|_|
+ )");
+	printw("#####################################\n");
+	printw("Press any key to exit...");
+	refresh();
+	getch();
+
+}
 
 unsigned int enemiesClock = 0;
 
@@ -327,6 +345,10 @@ int main() {
 				theEnemies = enemies[pPos[0]];
 				enemiesMemory[{pPos[0], a}] = mtwRes;
 			}
+			if(world[pPos[0]][theEnemies[a].first + 1][theEnemies[a].second] == '&' || world[pPos[0]][theEnemies[a].first - 1][theEnemies[a].second] == '&' || world[pPos[0]][theEnemies[a].first][theEnemies[a].second + 1] == '&' || world[pPos[0]][theEnemies[a].first][theEnemies[a].second - 1] == '&') {
+				gameOver();
+				goto yahhKalah;
+			}
 			world[pPos[0]][theEnemies[a].first][theEnemies[a].second] = 'E';
 		}
 		}
@@ -349,5 +371,6 @@ int main() {
 		napms(17);
 		refresh();
 	}
+yahhKalah:
 	endwin();
 }
