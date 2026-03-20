@@ -1,0 +1,3 @@
+# Di dalam file .clang-format
+BasedOnStyle: Google
+ColumnLimit: 0
