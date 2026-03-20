@@ -23,8 +23,20 @@ uniform_int_distribution<unsigned int> disIs(1, 3);
 
 vector<array<array<char, WidthWorld>, HeightWorld>> world;
 
+void typingAnimation(int d, string s) {
+  for (auto c : s) {
+    printw("%c", c);
+    refresh();
+    napms(d);
+  }
+}
+
+void typingAnimation(string s) {
+  typingAnimation(50, s);
+}
+
 void intro() {
-  array<string, HeightWorld> scene{
+  array<string, HeightWorld> scene = {
       "###### #############",
       "#                  #",
       "#                  #",
@@ -34,12 +46,12 @@ void intro() {
       "#             =    #",
       "#    B         BB  #",
       "#  #           BB  #",
-      "####################"};
-  array<pair<int, int>, 5> characterPos;
+      "################ ###"};
+  array<pair<int, int>, 5> characterPos;  // Y X
   characterPos[0] = {3, 2};
 
   array<char, 5> characterChar = {
-      '&'};
+      '&', '%'};
   auto printScene = [&scene]() {
     clear();
     for (auto a : scene) {
@@ -64,13 +76,13 @@ void intro() {
       napms(d);
     }
   };
-
   // Start animation
-  printw("...");
-  napms(5000);
+  clear();
+  typingAnimation(1500, "...");
+  napms(3000);
   printScene();
   napms(5000);
-  printw("Professor: Why it's just so hard?");
+  typingAnimation("Professor: Why it's just so hard?");
   flushinp();
   getch();
   cnPosLoop(250, 3, 0, 1, 0);
@@ -78,7 +90,152 @@ void intro() {
   cnPosLoop(250, 2, 0, 0, 1);
   cnPosLoop(250, 3, 0, -1, 0);
   napms(4000);
+  scene[0][6] = '%';
+  characterPos[1] = {0, 6};
+  cnPosLoop(250, 4, 1, 0, 1);
+  napms(2000);
+  typingAnimation("Another Professor: Wasup bro?\n");
+  flushinp();
   getch();
+  typingAnimation("Professor: I'm fine.\n");
+  flushinp();
+  getch();
+  cnPosLoop(300, 2, 0, 0, -1);
+  typingAnimation("Another Professor: Another Experiment, ya?\n");
+  flushinp();
+  getch();
+  typingAnimation("Professor: Just like usual day..\n");
+  napms(1000);
+  printw("Another Professor: I know you'll say that.\n");
+  refresh();
+  flushinp();
+  getch();
+  cnPosLoop(250, 2, 0, 1, -1);
+  cnPosLoop(250, 2, 0, 1, 0);
+  cnPos(0, 0, -1);
+  printScene();
+  napms(250);
+  scene[0][6] = ' ';
+  printScene();
+  napms(3000);
+  typingAnimation("Another Professor: What is that?\n");
+  flushinp();
+  getch();
+  cnPosLoop(500, 2, 1, -1, 0);
+  napms(2000);
+  scene[0][6] = '&';
+  napms(250);
+  cnPosLoop(250, 4, 0, 0, 1);
+  typingAnimation("Professor: What are you doing?\n");
+  flushinp();
+  getch();
+  typingAnimation("Another Professor: What about you?\n");
+  flushinp();
+  getch();
+  scene[4][7] = 'B';
+  characterPos[2] = {4, 7};
+  characterChar[2] = 'B';
+  printScene();
+  typingAnimation("Professor: I took some salt.\n");
+  flushinp();
+  getch();
+  napms(1000);
+  typingAnimation("Professor: ANSWER MY QUESTION!, please.\n");
+  flushinp();
+  getch();
+  typingAnimation("Another Professor: I JUST LOOKING AT YOUR PROJECT! DON'T YOU SEE??.\n");
+  flushinp();
+  getch();
+  typingAnimation("Professor: Sorry I just scared.\n");
+  flushinp();
+  getch();
+  printScene();
+  typingAnimation("Another Professor: It's okay... ");
+  typingAnimation("But why you scared?\n");
+  flushinp();
+  getch();
+  typingAnimation("Professor: Because THIS!.\n");
+  flushinp();
+  getch();
+  cnPosLoop(250, 1, 2, 0, -1);
+  cnPosLoop(250, 2, 2, -1, 0);
+  cnPosLoop(250, 1, 2, 0, 1);
+  cnPos(1, 5, 0);
+  cnPosLoop(250, 1, 2, -1, 0);
+  napms(2000);
+  typingAnimation("Professor: I scared if my prank failed.\n");
+  flushinp();
+  getch();
+  typingAnimation("Another Professor: Are U sur?\n");
+  flushinp();
+  getch();
+  typingAnimation("Professor: I think not\n");
+  flushinp();
+  getch();
+  clear();
+  typingAnimation(250, "One day passed\n");
+  flushinp();
+  getch();
+  clear();
+  typingAnimation(100, "theJuniorProgrammer3 Present you: ");
+  napms(500);
+  typingAnimation(200, "The 'Why Am Here?'\n");
+  getch();
+  flushinp();
+
+  scene = {
+      "###### #############",
+      "#                  #",
+      "#                  #",
+      "##&                #",
+      "#             =    #",
+      "##            =    #",
+      "#             =    #",
+      "#    B         BB  #",
+      "#  #           BB  #",
+      "################ ###"};
+  characterPos[0] = {3, 2};
+  characterPos[1] = {0, 6};
+  printScene();
+  napms(3000);
+  printw("AAAAA!");
+  refresh();
+  napms(1500);
+  cnPosLoop(50, 2, 0, 2, 0);
+  printw("Professor: WHAT IS THAT?!!");
+  refresh();
+  napms(3000);
+  cnPosLoop(100, 2, 1, 0, 1);
+  napms(1000);
+  printw("Professor: EXPLAIN ME WHAT IS JUST HAPPENED!!\n");
+  refresh();
+  flushinp();
+  getch();
+  cnPosLoop(100, 2, 1, 0, -1);
+  napms(2000);
+  cnPos(1, 8, 4);
+  scene[0][6] = '=';
+  printScene();
+  napms(2000);
+  typingAnimation(25, "Another Professor: Oh no, I'm infected, ");
+  napms(500);
+  typingAnimation(100, "save yourself bro..\n");
+  getch();
+  printw("Professor: FROM WHAT?!");
+  refresh();
+  flushinp();
+  getch();
+  clear();
+  typingAnimation("The earthquake occurred suddenly, but it also stopped suddenly.");
+  flushinp();
+  getch();
+  clear();
+  typingAnimation(250, "Save yourself. ");
+  napms(500);
+  printw("HURRY UP!!");
+  refresh();
+  getch();
+  flushinp();
 }
 void mainMenu() {
   while (true) {
@@ -111,12 +268,12 @@ void mainMenu() {
 }
 void initWorld() {
   vector<vector<string>> worldS = {
-      {"####################",
+      {"#####=##############",
        "#                  #",
        "#             =    #",
-       "#        &         #",
+       "##       &         #",
        "#                  #",
-       "#         B        #",
+       "##        B        #",
        "#   =              #",
        "#              =   #",
        "#      E           #",
@@ -398,8 +555,8 @@ unsigned int enemiesClock = 0;
 int main() {
   initscr();
   noecho();
-  mainMenu();
   initWorld();
+  mainMenu();
   keypad(stdscr, TRUE);
   nodelay(stdscr, TRUE);
   int inp;
