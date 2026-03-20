@@ -23,6 +23,92 @@ uniform_int_distribution<unsigned int> disIs(1, 3);
 
 vector<array<array<char, WidthWorld>, HeightWorld>> world;
 
+void intro() {
+  array<string, HeightWorld> scene{
+      "###### #############",
+      "#                  #",
+      "#                  #",
+      "##&                #",
+      "#             =    #",
+      "##            =    #",
+      "#             =    #",
+      "#    B         BB  #",
+      "#  #           BB  #",
+      "####################"};
+  array<pair<int, int>, 5> characterPos;
+  characterPos[0] = {3, 2};
+
+  array<char, 5> characterChar = {
+      '&'};
+  auto printScene = [&scene]() {
+    clear();
+    for (auto a : scene) {
+      printw("%s\n", a.c_str());
+      refresh();
+    }
+  };
+
+  auto cnPos = [&scene, &characterChar, &characterPos](int idx, int x, int y) {
+    clear();
+    auto* ci = &characterPos[idx];
+    scene[ci->first][ci->second] = ' ';
+    ci->first += y;
+    ci->second += x;
+    scene[ci->first][ci->second] = characterChar[idx];
+  };
+  auto cnPosLoop = [&printScene, &cnPos](int d, int l, int idx, int x, int y) {
+    for (int i = 0; i < l; ++i) {
+      cnPos(idx, x, y);
+      refresh();
+      printScene();
+      napms(d);
+    }
+  };
+
+  // Start animation
+  printw("...");
+  napms(5000);
+  printScene();
+  napms(5000);
+  printw("Professor: Why it's just so hard?");
+  flushinp();
+  getch();
+  cnPosLoop(250, 3, 0, 1, 0);
+  napms(250);
+  cnPosLoop(250, 2, 0, 0, 1);
+  cnPosLoop(250, 3, 0, -1, 0);
+  napms(4000);
+  getch();
+}
+void mainMenu() {
+  while (true) {
+    clear();
+    printw("#####################################\n");
+    printw(R"(__        ___          ___
+\ \      / / |__  _   |__ \
+ \ \ /\ / /| '_ \| | | |/ /
+  \ V  V / | | | | |_| |_|
+   \_/\_/  |_| |_|\__, (_)
+                  |___/)");
+    printw("\n#####################################\n");
+    printw("p to start the game | q to quit the game\n");
+    refresh();
+    char c = getch();
+    if (c == 'p') break;
+    switch (c) {
+      case 'q':
+        endwin();
+        exit(0);
+        break;
+      default:
+        printw("Invalid choice");
+        refresh();
+        napms(1000);
+        break;
+    }
+  }
+  intro();
+}
 void initWorld() {
   vector<vector<string>> worldS = {
       {"####################",
@@ -241,22 +327,32 @@ void push(char type) {
 }
 #ifdef NaturalEnemyMovement
 uint8_t moveToWhat(pair<int, int> enemyPos) {  // Y, X
+  static map<pair<uint8_t, uint8_t>, uint8_t> lookupTable;
   int dx = pPos[2] - enemyPos.second;
   int dy = pPos[1] - enemyPos.first;
-  float ang = atan2(dy, dx);
-  ang *= 57.3;  // 180 / PI
-                // temp, later will use radian for speed
-  if (ang < 0) ang += 360;
-  // to make it fair with player...
-  // 0 = right
-  // 1 = bottom right
-  // 2 = bottom
-  // 3 = bottom left
-  // 4 = left
-  // 5 = upper left
-  // 6 = up
-  // 7 = upper right
-  return static_cast<uint8_t>(round(ang / 45));
+  auto pos = lookupTable.find({dx, dy});
+  uint8_t toWhat;
+  if (pos == lookupTable.end()) {
+    float ang = atan2(dy, dx);
+    ang *= 57.3;  // 180 / PI
+                  // temp, later will use radian for speed
+    if (ang < 0) ang += 360;
+    // to make it fair with player...
+    // 0 = right
+    // 1 = bottom right
+    // 2 = bottom
+    // 3 = bottom left
+    // 4 = left
+    // 5 = upper left
+    // 6 = up
+    // 7 = upper right
+
+    toWhat = round(ang / 45);
+    lookupTable[{dx, dy}] = toWhat;
+  } else {
+    toWhat = pos->second;
+  }
+  return static_cast<uint8_t>(toWhat);
 }
 #else
 // AI gen / VIBECODED:
@@ -300,11 +396,12 @@ void gameOver() {
 unsigned int enemiesClock = 0;
 
 int main() {
-  initWorld();
   initscr();
+  noecho();
+  mainMenu();
+  initWorld();
   keypad(stdscr, TRUE);
   nodelay(stdscr, TRUE);
-  noecho();
   int inp;
   map<array<unsigned int, 2>, uint8_t> enemiesMemory;  // [enemy's floor, 'a' below] [type]
   while (true) {
@@ -351,13 +448,14 @@ int main() {
             ta->second++;
             break;
         }
+        auto iten = enemiesMemory.find({pPos[0], a});
         if (world[pPos[0]][ta->first][ta->second] == ' ') {
           enemiesMemory.erase({pPos[0], a});
           enemies[pPos[0]][a] = *ta;
           world[pPos[0]][ta->first][ta->second] = 'E';
-        } else if (enemiesMemory.find({pPos[0], a}) != enemiesMemory.end()) {
+        } else if (iten != enemiesMemory.end()) {
           theEnemies = enemies[pPos[0]];
-          switch (enemiesMemory[{pPos[0], a}]) {
+          switch (iten->second) {
             case 0:
             case 4:
               ta->first++;
