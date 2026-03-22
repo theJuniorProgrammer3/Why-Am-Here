@@ -340,6 +340,7 @@ void addWorld() {
 
 array<unsigned int, 3> pPos = {0, 3, 9};
 array<int, 9> inventory = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+unsigned int blockCount = 0;
 ;
 
 void changePos(int ud, int rl) {
@@ -363,19 +364,27 @@ void changePos(int ud, int rl) {
 
 map<vector<unsigned int>, vector<int>> shelfList;
 
+enum item { EMPTY,
+            CASH,
+            ATROPINE,
+            GLUCOSE,
+            BLOCK };
 string intToItem(int i) {
   switch (i) {
-    case 0:
+    case EMPTY:
       return "Empty";
       break;
-    case 1:
+    case CASH:
       return "Cash";
       break;
-    case 2:
+    case ATROPINE:
       return "Atropine";
       break;
-    default:  // case 3, but no warning
+    case GLUCOSE:
       return "Glucose";
+      break;
+    default:  // case 4/BLOCK, but no warning
+      return "Block";
       break;
   }
 }
@@ -450,7 +459,7 @@ map<char, pair<int, int>> direction = {
     {'f', {0, 1}},
     {'k', {0, 1}},
 };
-
+bool revrse = false;  // cuz ambigous std::reverse
 void inter(char type) {
   vector<unsigned int> pos;
   char itm;
@@ -460,25 +469,72 @@ void inter(char type) {
     case '=':
       openShelf(pos);
       break;
+    case 'B': {
+      int emptySpace = find(inventory.begin(), inventory.end(), EMPTY) - inventory.begin();
+      if (emptySpace != 9) {
+        inventory[emptySpace] = BLOCK;
+        world[pos[0]][pos[1]][pos[2]] = ' ';
+      } else {
+        printw("Inventory is full\n");
+        refresh();
+        getch();
+      }
+      break;
+    }
+    case ' ':
+      int blockidx = find(inventory.begin(), inventory.end(), BLOCK) - inventory.begin();
+      if (blockidx != 9) {
+        inventory[blockidx] = EMPTY;
+        world[pos[0]][pos[1]][pos[2]] = 'B';
+      }
+      break;
   }
 }
 
 void push(char type) {
-  vector<unsigned int> pos;
-  char itm;
+  array<unsigned int, 3> pos;
+  // Commented code below is for another approach of pulling block
+  // It's harder to control so I decided to make another way
+  // Uncomment and remove several code to use them
+  // This is will be removed on next update
+  // if(!revrse)
   pos = {pPos[0], pPos[1] + direction[type].first, pPos[2] + direction[type].second};
+  /*else
+    pos = {pPos[0], pPos[1] + direction[type].first * 2, pPos[2] + direction[type].second * 2};*/
+  char itm;
   itm = world[pos[0]][pos[1]][pos[2]];
-  if (itm == 'B') {
-    if (pos[1] == 9) {  // world pos 0 size - 1
-      world[pos[0]][9][pos[2]] = ' ';
+  // if (itm == 'B' && !revrse) {
+  if (itm == 'B' && !revrse) {
+    if (pos[1] == HeightWorld - 1) {  // 9
+      world[pPos[0]][pPos[1]][pPos[2]] = ' ';
+      pPos = pos;
+      world[pos[0]][9][pos[2]] = '&';
       if (pos[0] + 1 >= world.size()) addWorld();
       world[pos[0] + 1][1][pos[2]] = 'B';
     } else if (pos[1] == 0) {
-      world[pos[0]][0][pos[2]] = ' ';
+      world[pPos[0]][pPos[1]][pPos[2]] = ' ';
+      pPos = pos;
+      world[pos[0]][0][pos[2]] = '&';
       world[pos[0] - 1][8][pos[2]] = 'B';
     } else if (world[pos[0]][pos[1] + direction[type].first][pos[2] + direction[type].second] == ' ') {
+      world[pos[0]][pos[1] + direction[type].first][pos[2] + direction[type].second] = 'B';
+      world[pPos[0]][pPos[1]][pPos[2]] = ' ';
+      pPos = pos;
+      world[pos[0]][pos[1]][pos[2]] = '&';
+    }
+  } else if (itm == 'B' && revrse) {
+    /*if (world[pPos[0]][pPos[1] + direction[type].first][pPos[2] + direction[type].second] == ' ') {
+    }
+      world[pos[0]][pos[1] + direction[type].first][pos[2] + direction[type].second] = 'B';
+      world[pPos[0]][pPos[1]][pPos[2]] = ' ';
+      pPos = pos;
+      world[pos[0]][pos[1]][pos[2]] = '&';*/
+    if (world[pPos[0]][pPos[1] + direction[type].first * -1][pPos[2] + direction[type].second * -1] == ' ') {
       world[pos[0]][pos[1]][pos[2]] = ' ';
-      world[pos[0]][pos[1] + direction[type].first][pos[2] + direction[type].second] = itm;
+      world[pPos[0]][pPos[1]][pPos[2]] = 'B';
+      pPos[1] += direction[type].first * -1;
+      pPos[2] += direction[type].second * -1;
+      world[pPos[0]][pPos[1]][pPos[2]] = '&';
     }
   }
 }
@@ -564,8 +620,8 @@ int main() {
   while (true) {
     clear();
     // Enemy Movement, basic first...
-    vector<pair<unsigned int, unsigned int>> theEnemies = enemies[pPos[0]];
     if (enemiesClock == 45) {  // After 45 frame
+      vector<pair<unsigned int, unsigned int>> theEnemies = enemies[pPos[0]];
       enemiesClock = 0;
       for (unsigned int a = 0; a < theEnemies.size(); ++a) {
         pair<unsigned int, unsigned int>* ta = &theEnemies[a];
@@ -573,8 +629,8 @@ int main() {
           gameOver();
           goto yahhKalah;
         }
-        auto mtwRes = moveToWhat(*ta);
         world[pPos[0]][ta->first][ta->second] = ' ';
+        auto mtwRes = moveToWhat(*ta);
         switch (mtwRes) {
           case 0:
             ta->second++;
@@ -611,7 +667,7 @@ int main() {
           enemies[pPos[0]][a] = *ta;
           world[pPos[0]][ta->first][ta->second] = 'E';
         } else if (iten != enemiesMemory.end()) {
-          theEnemies = enemies[pPos[0]];
+          *ta = enemies[pPos[0]][a];
           switch (iten->second) {
             case 0:
             case 4:
@@ -650,22 +706,27 @@ int main() {
               }
               break;
           }
-          enemies[pPos[0]][a] = *ta;
-        } else {
-          theEnemies = enemies[pPos[0]];
+          if (world[pPos[0]][ta->first][ta->second] == ' ') {
+            enemies[pPos[0]][a] = *ta;
+            world[pPos[0]][ta->first][ta->second] = 'E';
+          } else {
+            world[pPos[0]][enemies[pPos[0]][a].first][enemies[pPos[0]][a].second] = 'E';
+          }
+        } else {  // No empty grid and no memory
+          *ta = enemies[pPos[0]][a];
           enemiesMemory[{pPos[0], a}] = mtwRes;
+          world[pPos[0]][ta->first][ta->second] = 'E';
         }
-        world[pPos[0]][ta->first][ta->second] = 'E';
       }
     }
     enemiesClock++;
     for (auto b : world[pPos[0]]) {
       for (auto c : b) {
-        // printw("[%c]", (c == "p" ? "&" : " ));
         printw("%c", c);
       }
       printw("\n");
     }
+    printw("Pu%s mode", (revrse ? "ll" : "sh"));
     inp = getch();
     if (inp == KEY_RIGHT)
       changePos(0, 1);
@@ -677,6 +738,8 @@ int main() {
       changePos(1, 0);
     else if (inp == 'q')
       break;
+    else if (inp == 'r')
+      revrse = !revrse;
     if (inp == 'e' || inp == 's' || inp == 'd' || inp == 'f') inter(inp);
     if (inp == 'u' || inp == 'h' || inp == 'j' || inp == 'k') push(inp);
     napms(17);
