@@ -20,6 +20,7 @@ bernoulli_distribution disLuckInShelf(0.3);
 uniform_int_distribution<unsigned int> disInShelf(0, 10);
 uniform_int_distribution<unsigned int> disY(1, 8);
 uniform_int_distribution<unsigned int> disIs(1, 3);
+bernoulli_distribution chanceToAddBlockCount(0.6);
 
 vector<array<array<char, WidthWorld>, HeightWorld>> world;
 
@@ -237,6 +238,62 @@ void intro() {
   getch();
   flushinp();
 }
+
+array<unsigned int, 3> pPos = {0, 3, 9};
+
+void phase1Passed() {
+  nodelay(stdscr, FALSE);
+  array<string, HeightWorld> scene;
+  array<pair<int, int>, 5> characterPos;  // Y X
+  for (int i = 0; i < HeightWorld; ++i) {
+    for (int j = 0; j < WidthWorld; ++j) {
+      scene[i][j] = world[pPos[0]][i][j];
+      if (scene[i][j] == '&') {
+        characterPos[0] = {i, j};
+      }
+    }
+  }
+
+  array<char, 5> characterChar = {
+      '&'};
+  auto printScene = [&scene]() {
+    clear();
+    for (auto a : scene) {
+      printw("%s\n", a.c_str());
+    }
+    refresh();
+  };
+
+  auto cnPos = [&scene, &characterChar, &characterPos](int idx, int x, int y) {
+    clear();
+    auto* ci = &characterPos[idx];
+    scene[ci->first][ci->second] = ' ';
+    ci->first += y;
+    ci->second += x;
+    scene[ci->first][ci->second] = characterChar[idx];
+  };
+  auto cnPosLoop = [&printScene, &cnPos](int d, int l, int idx, int x, int y) {
+    for (int i = 0; i < l; ++i) {
+      cnPos(idx, x, y);
+      refresh();
+      printScene();
+      napms(d);
+    }
+  };
+  // Start animation
+  clear();
+  refresh();
+  napms(3000);
+  typingAnimation("Professor escaped from the long hall.");
+  flushinp();
+  getch();
+  printScene();
+  napms(3000);
+  scene[characterPos[0].first][characterPos[0].second] = ' ';  // TODO: FIX THIS IDK WHY IT DOESNT WORK
+  printScene();
+  flushinp();
+  getch();
+}
 void mainMenu() {
   while (true) {
     clear();
@@ -264,7 +321,7 @@ void mainMenu() {
         break;
     }
   }
-  intro();
+  // intro();
 }
 void initWorld() {
   vector<vector<string>> worldS = {
@@ -338,28 +395,34 @@ void addWorld() {
   world.push_back(w);
 }
 
-array<unsigned int, 3> pPos = {0, 3, 9};
 array<int, 9> inventory = {0, 0, 0, 0, 0, 0, 0, 0, 0};
 unsigned int blockCount = 0;
+unsigned int health = 100 + 1;  // this is 100
+unsigned int energy = 100 + 1;  // this is 100
 ;
+unsigned int energyClock = 0;
 
 void changePos(int ud, int rl) {
-  world[pPos[0]][pPos[1]][pPos[2]] = ' ';
-  if (pPos[1] + ud == HeightWorld) {  // world Y size - 1 + 1
-    pPos[0]++;
-    pPos[1] = 0;
-    if (pPos[0] >= world.size()) {
-      addWorld();
+  if (energy > 1) {
+    world[pPos[0]][pPos[1]][pPos[2]] = ' ';
+    if (pPos[1] + ud == HeightWorld) {  // world Y size - 1 + 1
+      pPos[0]++;
+      pPos[1] = 0;
+      if (pPos[0] >= world.size()) {
+        addWorld();
+      }
+    } else if ((int)pPos[1] + ud == -1) {
+      if (pPos[0] > 0) {
+        pPos[0]--;
+        pPos[1] = HeightWorld - 1;  // world Y size - 1
+      }
     }
-  } else if ((int)pPos[1] + ud == -1) {
-    if (pPos[0] > 0) {
-      pPos[0]--;
-      pPos[1] = HeightWorld - 1;  // world Y size - 1
-    }
+    if (world[pPos[0]][pPos[1] + ud][pPos[2]] == ' ') pPos[1] += ud;
+    if (world[pPos[0]][pPos[1]][pPos[2] + rl] == ' ') pPos[2] += rl;
+    world[pPos[0]][pPos[1]][pPos[2]] = '&';
+    energyClock = 0;
+    energy--;
   }
-  if (world[pPos[0]][pPos[1] + ud][pPos[2]] == ' ') pPos[1] += ud;
-  if (world[pPos[0]][pPos[1]][pPos[2] + rl] == ' ') pPos[2] += rl;
-  world[pPos[0]][pPos[1]][pPos[2]] = '&';
 }
 
 map<vector<unsigned int>, vector<int>> shelfList;
@@ -447,6 +510,40 @@ void openShelf(vector<unsigned int> pos) {
   nodelay(stdscr, TRUE);
 }
 
+void useItem(int item) {
+  switch (item) {
+    case EMPTY:
+      break;
+    case ATROPINE:
+      health += 3;
+      break;
+    case GLUCOSE:
+      energy += 3;
+      break;
+  }
+}
+
+void useInventory() {
+  nodelay(stdscr, FALSE);
+  clear();
+  openInventory();
+  char choiceC = getch();
+  refresh();
+  int choice;
+  if (isdigit(choiceC)) {
+    choice = choiceC - '0';
+    if (choice > 0 && choice <= 9) {
+      useItem(inventory[choice - 1]);
+      inventory[choice - 1] = EMPTY;
+    } else {
+      printw("Invalid index!\n");
+      refresh();
+      napms(700);
+    }
+  }
+  nodelay(stdscr, TRUE);
+}
+
 map<char, pair<int, int>> direction = {
     // char, Y, X
     // I will optimize later
@@ -472,7 +569,11 @@ void inter(char type) {
     case 'B': {
       int emptySpace = find(inventory.begin(), inventory.end(), EMPTY) - inventory.begin();
       if (emptySpace != 9) {
-        inventory[emptySpace] = BLOCK;
+        if (!chanceToAddBlockCount(gen)) {
+          inventory[emptySpace] = BLOCK;
+        } else {
+          blockCount++;
+        }
         world[pos[0]][pos[1]][pos[2]] = ' ';
       } else {
         printw("Inventory is full\n");
@@ -493,17 +594,9 @@ void inter(char type) {
 
 void push(char type) {
   array<unsigned int, 3> pos;
-  // Commented code below is for another approach of pulling block
-  // It's harder to control so I decided to make another way
-  // Uncomment and remove several code to use them
-  // This is will be removed on next update
-  // if(!revrse)
   pos = {pPos[0], pPos[1] + direction[type].first, pPos[2] + direction[type].second};
-  /*else
-    pos = {pPos[0], pPos[1] + direction[type].first * 2, pPos[2] + direction[type].second * 2};*/
   char itm;
   itm = world[pos[0]][pos[1]][pos[2]];
-  // if (itm == 'B' && !revrse) {
   if (itm == 'B' && !revrse) {
     if (pos[1] == HeightWorld - 1) {  // 9
       world[pPos[0]][pPos[1]][pPos[2]] = ' ';
@@ -523,12 +616,6 @@ void push(char type) {
       world[pos[0]][pos[1]][pos[2]] = '&';
     }
   } else if (itm == 'B' && revrse) {
-    /*if (world[pPos[0]][pPos[1] + direction[type].first][pPos[2] + direction[type].second] == ' ') {
-    }
-      world[pos[0]][pos[1] + direction[type].first][pos[2] + direction[type].second] = 'B';
-      world[pPos[0]][pPos[1]][pPos[2]] = ' ';
-      pPos = pos;
-      world[pos[0]][pos[1]][pos[2]] = '&';*/
     if (world[pPos[0]][pPos[1] + direction[type].first * -1][pPos[2] + direction[type].second * -1] == ' ') {
       world[pos[0]][pos[1]][pos[2]] = ' ';
       world[pPos[0]][pPos[1]][pPos[2]] = 'B';
@@ -548,9 +635,7 @@ uint8_t moveToWhat(pair<int, int> enemyPos) {  // Y, X
   if (pos == lookupTable.end()) {
     float ang = atan2(dy, dx);
     ang *= 57.3;  // 180 / PI
-                  // temp, later will use radian for speed
     if (ang < 0) ang += 360;
-    // to make it fair with player...
     // 0 = right
     // 1 = bottom right
     // 2 = bottom
@@ -619,103 +704,117 @@ int main() {
   map<array<unsigned int, 2>, uint8_t> enemiesMemory;  // [enemy's floor, 'a' below] [type]
   while (true) {
     clear();
+    if (blockCount == 200) {
+      phase1Passed();
+      goto endGame;
+    }
+    if (energy < 101 && energyClock == 600) {
+      energy++;
+      energyClock = 0;
+    }
+    energyClock++;
     // Enemy Movement, basic first...
-    if (enemiesClock == 45) {  // After 45 frame
+    if (enemiesClock == 30) {  // After 30 frame
       vector<pair<unsigned int, unsigned int>> theEnemies = enemies[pPos[0]];
       enemiesClock = 0;
       for (unsigned int a = 0; a < theEnemies.size(); ++a) {
         pair<unsigned int, unsigned int>* ta = &theEnemies[a];
         if (world[pPos[0]][ta->first + 1][ta->second] == '&' || world[pPos[0]][ta->first - 1][ta->second] == '&' || world[pPos[0]][ta->first][ta->second + 1] == '&' || world[pPos[0]][ta->first][ta->second - 1] == '&') {
-          gameOver();
-          goto yahhKalah;
-        }
-        world[pPos[0]][ta->first][ta->second] = ' ';
-        auto mtwRes = moveToWhat(*ta);
-        switch (mtwRes) {
-          case 0:
-            ta->second++;
-            break;
-          case 1:
-            ta->second++;
-            ta->first++;
-            break;
-          case 2:
-            ta->first++;
-            break;
-          case 3:
-            ta->first++;
-            ta->second--;
-            break;
-          case 4:
-            ta->second--;
-            break;
-          case 5:
-            ta->second--;
-            ta->first--;
-            break;
-          case 6:
-            ta->first--;
-            break;
-          default:  // 7 or 8
-            ta->first--;
-            ta->second++;
-            break;
-        }
-        auto iten = enemiesMemory.find({pPos[0], a});
-        if (world[pPos[0]][ta->first][ta->second] == ' ') {
-          enemiesMemory.erase({pPos[0], a});
-          enemies[pPos[0]][a] = *ta;
-          world[pPos[0]][ta->first][ta->second] = 'E';
-        } else if (iten != enemiesMemory.end()) {
-          *ta = enemies[pPos[0]][a];
-          switch (iten->second) {
+          if (health == 0) {
+            gameOver();
+            goto endGame;
+          } else {
+            health--;
+          }
+        } else {
+          world[pPos[0]][ta->first][ta->second] = ' ';
+          auto mtwRes = moveToWhat(*ta);
+          switch (mtwRes) {
             case 0:
-            case 4:
-              ta->first++;
-              break;
-            case 2:
-            case 6:
               ta->second++;
               break;
             case 1:
-              if (world[pPos[0]][ta->first + 1][ta->second] == ' ') {
-                ta->first++;
-              } else {
-                ta->second++;
-              }
+              ta->second++;
+              ta->first++;
+              break;
+            case 2:
+              ta->first++;
               break;
             case 3:
-              if (world[pPos[0]][ta->first + 1][ta->second] == ' ') {
-                ta->first++;
-              } else {
-                ta->second--;
-              }
+              ta->first++;
+              ta->second--;
+              break;
+            case 4:
+              ta->second--;
               break;
             case 5:
-              if (world[pPos[0]][ta->first - 1][ta->second] == ' ') {
-                ta->first--;
-              } else {
-                ta->second--;
-              }
+              ta->second--;
+              ta->first--;
               break;
-            default:
-              if (world[pPos[0]][ta->first - 1][ta->second] == ' ') {
-                ta->first--;
-              } else {
-                ta->second++;
-              }
+            case 6:
+              ta->first--;
+              break;
+            default:  // 7 or 8
+              ta->first--;
+              ta->second++;
               break;
           }
+          auto iten = enemiesMemory.find({pPos[0], a});
           if (world[pPos[0]][ta->first][ta->second] == ' ') {
+            enemiesMemory.erase({pPos[0], a});
             enemies[pPos[0]][a] = *ta;
             world[pPos[0]][ta->first][ta->second] = 'E';
-          } else {
-            world[pPos[0]][enemies[pPos[0]][a].first][enemies[pPos[0]][a].second] = 'E';
+          } else if (iten != enemiesMemory.end()) {
+            *ta = enemies[pPos[0]][a];
+            switch (iten->second) {
+              case 0:
+              case 4:
+                ta->first++;
+                break;
+              case 2:
+              case 6:
+                ta->second++;
+                break;
+              case 1:
+                if (world[pPos[0]][ta->first + 1][ta->second] == ' ') {
+                  ta->first++;
+                } else {
+                  ta->second++;
+                }
+                break;
+              case 3:
+                if (world[pPos[0]][ta->first + 1][ta->second] == ' ') {
+                  ta->first++;
+                } else {
+                  ta->second--;
+                }
+                break;
+              case 5:
+                if (world[pPos[0]][ta->first - 1][ta->second] == ' ') {
+                  ta->first--;
+                } else {
+                  ta->second--;
+                }
+                break;
+              default:
+                if (world[pPos[0]][ta->first - 1][ta->second] == ' ') {
+                  ta->first--;
+                } else {
+                  ta->second++;
+                }
+                break;
+            }
+            if (world[pPos[0]][ta->first][ta->second] == ' ') {
+              enemies[pPos[0]][a] = *ta;
+              world[pPos[0]][ta->first][ta->second] = 'E';
+            } else {
+              world[pPos[0]][enemies[pPos[0]][a].first][enemies[pPos[0]][a].second] = 'E';
+            }
+          } else {  // No empty grid and no memory
+            *ta = enemies[pPos[0]][a];
+            enemiesMemory[{pPos[0], a}] = mtwRes;
+            world[pPos[0]][ta->first][ta->second] = 'E';
           }
-        } else {  // No empty grid and no memory
-          *ta = enemies[pPos[0]][a];
-          enemiesMemory[{pPos[0], a}] = mtwRes;
-          world[pPos[0]][ta->first][ta->second] = 'E';
         }
       }
     }
@@ -726,7 +825,9 @@ int main() {
       }
       printw("\n");
     }
-    printw("Pu%s mode", (revrse ? "ll" : "sh"));
+    printw("Pu%s mode\n", (revrse ? "ll" : "sh"));
+    printw("Energy: %i\n", energy - 1);
+    printw("Health: %i\n", health - 1);
     inp = getch();
     if (inp == KEY_RIGHT)
       changePos(0, 1);
@@ -740,11 +841,13 @@ int main() {
       break;
     else if (inp == 'r')
       revrse = !revrse;
+    else if (inp == 'i')
+      useInventory();
     if (inp == 'e' || inp == 's' || inp == 'd' || inp == 'f') inter(inp);
     if (inp == 'u' || inp == 'h' || inp == 'j' || inp == 'k') push(inp);
     napms(17);
     refresh();
   }
-yahhKalah:
+endGame:
   endwin();
 }
