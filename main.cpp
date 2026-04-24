@@ -9,6 +9,7 @@
 
 #define WidthWorld 20
 #define HeightWorld 10
+#define MAXINT 4294967295
 
 using namespace std;
 
@@ -246,6 +247,7 @@ void phase1Passed() {
   array<string, HeightWorld> scene;
   array<pair<int, int>, 5> characterPos;  // Y X
   for (int i = 0; i < HeightWorld; ++i) {
+    scene[i].resize(WidthWorld, ' ');
     for (int j = 0; j < WidthWorld; ++j) {
       scene[i][j] = world[pPos[0]][i][j];
       if (scene[i][j] == '&') {
@@ -289,7 +291,7 @@ void phase1Passed() {
   getch();
   printScene();
   napms(3000);
-  scene[characterPos[0].first][characterPos[0].second] = ' ';  // TODO: FIX THIS IDK WHY IT DOESNT WORK
+  scene[characterPos[0].first][characterPos[0].second] = ' ';
   printScene();
   flushinp();
   getch();
@@ -321,7 +323,7 @@ void mainMenu() {
         break;
     }
   }
-  // intro();
+  intro();
 }
 void initWorld() {
   vector<vector<string>> worldS = {
@@ -397,17 +399,17 @@ void addWorld() {
 
 array<int, 9> inventory = {0, 0, 0, 0, 0, 0, 0, 0, 0};
 unsigned int blockCount = 0;
-unsigned int health = 100 + 1;  // this is 100
-unsigned int energy = 100 + 1;  // this is 100
+unsigned int health = 100;
+unsigned int energy = 100;
 ;
 unsigned int energyClock = 0;
 
 void changePos(int ud, int rl) {
-  if (energy > 1) {
+  if (energy > 0) {
     world[pPos[0]][pPos[1]][pPos[2]] = ' ';
     if (pPos[1] + ud == HeightWorld) {  // world Y size - 1 + 1
       pPos[0]++;
-      pPos[1] = 0;
+      pPos[1] = MAXINT;
       if (pPos[0] >= world.size()) {
         addWorld();
       }
@@ -417,8 +419,12 @@ void changePos(int ud, int rl) {
         pPos[1] = HeightWorld - 1;  // world Y size - 1
       }
     }
-    if (world[pPos[0]][pPos[1] + ud][pPos[2]] == ' ') pPos[1] += ud;
-    if (world[pPos[0]][pPos[1]][pPos[2] + rl] == ' ') pPos[2] += rl;
+    if (pPos[1] != MAXINT) {  // I use MAXINT instead of 0 to make it can walk at pPos[1] = 0
+      if (world[pPos[0]][pPos[1] + ud][pPos[2]] == ' ') pPos[1] += ud;
+      if (world[pPos[0]][pPos[1]][pPos[2] + rl] == ' ') pPos[2] += rl;
+    } else {
+      pPos[1] = 0;
+    }
     world[pPos[0]][pPos[1]][pPos[2]] = '&';
     energyClock = 0;
     energy--;
@@ -826,8 +832,8 @@ int main() {
       printw("\n");
     }
     printw("Pu%s mode\n", (revrse ? "ll" : "sh"));
-    printw("Energy: %i\n", energy - 1);
-    printw("Health: %i\n", health - 1);
+    printw("Energy: %i\n", energy);
+    printw("Health: %i\n", health);
     inp = getch();
     if (inp == KEY_RIGHT)
       changePos(0, 1);

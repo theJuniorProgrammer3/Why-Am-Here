@@ -16,8 +16,17 @@ Mainkan game ini dengan pengalaman yang bagus (kuharap Anda menyukai game ini!)
 (Catatan: Selama masa pengembangan, cerita dapat berubah kapan saja)
 
 ## Fitur Utama
-- ?
-TODO: Tambah ini
+### Kontrol yang mudah dipelajari
+Anda tidak akan kesulitan untuk mempelajari kontrol-kontrol yang ada (meskipun tetap perlu dipelajari), membuat Anda tidak perlu waktu yang terlalu lama untuk mempelajari Why Am Here.
+
+### Alur cerita yang bisa diikuti
+Cerita tentang kehilangan seseorang yang telah berjasa, misteri dibalik infeksi zombie, dibalut dengan beberapa humor (yang mungkin garing) membuat Anda bisa menikmati pengalaman bermain game Why Am Here.
+
+### Tiga fase
+Tiga fase yang setiap fasenya memuat mekanik baru, item baru, yang membuat Anda selalu mempelajari, mengadaptasi hal baru tiap fasenya. Tingkat kesulitan yang berbeda juga membuat Anda secara progresif meningkatkan kemampuan Anda bermain game Why Am Here.
+
+### ?
+- TODO: ADD THIS
 
 ## Kontrol
 - Panah kanan untuk bergerak ke kanan
@@ -30,10 +39,14 @@ TODO: Tambah ini
 - '1', '2', dst. untuk mengambil barang di lemari
 
 ## Cara menang
-TODO: Tambah cara menang
-
+- Fase 1
+  - Kumpulkan 200 block
+- Fase 2
+  - Sedang dikerjakan
+- Fase 3
+  - Akan datang
 ## Cara kalah
-Menyentuh zombie
+Kehabisan health
 
 ---
 
@@ -62,8 +75,16 @@ Enjoy the game and have a great experience (I hope you enjoy it!)
 (Note: During development, the story is subject to change at any time)
 
 ## Key Features
-- ?
-TODO: Add this
+### Easy-to-learn controls 
+You won't have any trouble learning the controls (although they do require some practice), so it won't take you too long to learn Why Am Here. 
+
+### A relatable storyline 
+The story of the loss of a valuable service, the mystery behind the zombie infection, and some humor (which may be dry) will ensure you enjoy the Why Am Here experience. 
+
+### Three phases 
+Three phases, each containing new mechanics and new items, keep you constantly learning and adapting to new things. Different difficulty levels also allow you to progressively improve your skills in Why Am Here. 
+
+### ? - TODO: ADD THIS
 
 ## Controls
 - Right arrow to move right
@@ -76,10 +97,14 @@ TODO: Add this
 - '1', '2', etc. to pick up items from the closet
 
 ## How to win
-TODO: Add a way to win
-
+- Phase 1
+  - Collect 200 blocks
+- Phase 2
+  - On working
+- Phase 3
+  - Coming soon
 ## How to lose
-Touch a zombie
+Run out of health
 
 ---
 
