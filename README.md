@@ -1,3 +1,62 @@
+# English Version
+...
+SCP-256?
+"I think I've read that before..."
+"Ah! I know! That is!... But what's that?"
+
+# Why Am Here
+Why Am Here is an experimental ASCII game that combines several genres (hopefully), while still having a solid storyline.
+
+## Storyline
+You play a professor trapped in a medical corridor filled with people infected by zombies. You must gather resources (including those blocks... again).
+
+But what happens next?
+
+Enjoy the game and have a great experience (I hope you enjoy it!)
+
+(Note: During development, the story is subject to change at any time)
+
+## Key Features
+### Easy-to-learn controls 
+You won't have any trouble learning the controls (although they do require some practice), so it won't take you too long to learn Why Am Here. 
+
+### A relatable storyline 
+The story of the loss of a valuable service, the mystery behind the zombie infection, and some humor (which may be dry) will ensure you enjoy the Why Am Here experience. 
+
+### Three phases 
+Three phases, each containing new mechanics and new items, keep you constantly learning and adapting to new things. Different difficulty levels also allow you to progressively improve your skills in Why Am Here. 
+
+### ? - TODO: ADD THIS
+
+## Controls
+- Right arrow to move right
+- Left arrow to move left
+- Up arrow to move up
+- Down arrow to move down
+- 'q' to exit
+- 'e', 's', 'd', 'f' to interact with items
+- 'u', 'h', 'j', 'k' to push blocks
+- '1', '2', etc. to pick up items from the closet
+
+## How to win
+- Phase 1
+  - Collect 200 blocks
+- Phase 2
+  - On working
+- Phase 3
+  - Coming soon
+## How to lose
+Run out of health
+
+---
+
+...
+
+...
+
+"Why am here?" - Grammar from professor who almost infected
+
+# Versi Indonesia
 ...
 SCP-256?
 "Kurasa aku pernah membacanya"...
@@ -56,60 +115,3 @@ Kehabisan health
 
 "Kenapa disini aku?" - Tata bahasa professor yang sudah hampir terinsfeksi
 
-# English Version
-...
-SCP-256?
-"I think I've read that before..."
-"Ah! I know! That is!... But what's that?"
-
-# Why Am Here
-Why Am Here is an experimental ASCII game that combines several genres (hopefully), while still having a solid storyline.
-
-## Storyline
-You play a professor trapped in a medical corridor filled with people infected by zombies. You must gather resources (including those blocks... again).
-
-But what happens next?
-
-Enjoy the game and have a great experience (I hope you enjoy it!)
-
-(Note: During development, the story is subject to change at any time)
-
-## Key Features
-### Easy-to-learn controls 
-You won't have any trouble learning the controls (although they do require some practice), so it won't take you too long to learn Why Am Here. 
-
-### A relatable storyline 
-The story of the loss of a valuable service, the mystery behind the zombie infection, and some humor (which may be dry) will ensure you enjoy the Why Am Here experience. 
-
-### Three phases 
-Three phases, each containing new mechanics and new items, keep you constantly learning and adapting to new things. Different difficulty levels also allow you to progressively improve your skills in Why Am Here. 
-
-### ? - TODO: ADD THIS
-
-## Controls
-- Right arrow to move right
-- Left arrow to move left
-- Up arrow to move up
-- Down arrow to move down
-- 'q' to exit
-- 'e', 's', 'd', 'f' to interact with items
-- 'u', 'h', 'j', 'k' to push blocks
-- '1', '2', etc. to pick up items from the closet
-
-## How to win
-- Phase 1
-  - Collect 200 blocks
-- Phase 2
-  - On working
-- Phase 3
-  - Coming soon
-## How to lose
-Run out of health
-
----
-
-...
-
-...
-
-"Why am here?" - Grammar from professor who almost infected
